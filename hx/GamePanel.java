@@ -19,17 +19,16 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
     int[] snakeY = new int[500];// 蛇的坐标y
     String fx;
     boolean isStar = false;
+    boolean isFail = false;
+    int score;
     int foodx;
     int foody;
     Random random = new Random();
-
     Timer timer = new Timer(100, this);
-
     public GamePanel() {
         init();
         // 获取键盘的监听事件
         this.setFocusable(true);
-
         this.addKeyListener(this);
         timer.start();
     }
@@ -46,6 +45,7 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
         snakeY[2] = 100;
         foodx = 25 + 25*random.nextInt(34);
         foody = 75 + 25*random.nextInt(24);
+        score = 0;
     }
 
     // 画板：化界面 画蛇
@@ -75,7 +75,16 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
             g.setFont(new Font("微软雅黑", Font.BOLD, 40));// 设置字体
             g.drawString("按下空格开始", 300, 300);
         }
+        if (isFail) {
+            g.setColor(Color.white);// 设置画笔的颜色
+            g.setFont(new Font("微软雅黑", Font.BOLD, 40));// 设置字体
+            g.drawString("游戏结束，请按下空格重新开始", 200, 300);
+        }
         Data.food.paintIcon(this, g, foodx,foody);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("微软雅黑",Font.BOLD,12));
+        g.drawString("长度："+lenth, 750, 30);
+        g.drawString("积分"+score, 750, 45);
     }
 
     @Override
@@ -83,7 +92,13 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
         // 键盘按下未释放
         int keycode = e.getKeyCode();
         if (keycode == KeyEvent.VK_SPACE) {
-            isStar = !isStar;
+            if (isFail) {
+                System.out.println(isFail);
+                init();
+                isFail = false;
+            }else{
+                isStar = !isStar;
+            }         
             repaint();// 重新绘制界面
         }
 
@@ -104,7 +119,8 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         // 如果游戏处于开始状态
-        if (isStar) {
+        if (isStar&&!isFail) {
+            
             //右移
             for (int i = lenth-1; i > 0; i--) {
                 snakeX[i] = snakeX[i-1];
@@ -114,34 +130,41 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
                 
                 snakeX[0] = snakeX[0] + 25;
                 if (snakeX[0]>862) {
-                    init();
+                    isFail = true;
                 }
             }else if(fx == "L"){
                 snakeX[0] = snakeX[0] -25;
                 if (snakeX[0]<=0) {
-                    init();
+                    isFail = true;
                 }
             }else if(fx == "U"){
                 snakeY[0] = snakeY[0] - 25;
                 if (snakeY[0]<75) {
-                    init();
+                    isFail = true;
                 }
             }else if(fx == "D"){
                 snakeY[0] = snakeY[0] +25;
                 if (snakeY[0]>=675) {
-                    init();
+                    isFail = true;
                 }
             }
             if (snakeX[0] == foodx && snakeY[0] == foody) {
-                lenth++;    
+                lenth++;
+                score = score + 10;    
                 foodx = 25 + 25*random.nextInt(34);
                 foody = 75 + 25*random.nextInt(24);        
             }
+            //结束
+            for (int i = 1; i < lenth; i++) {
+                if (snakeX[0] == snakeX[i] && snakeY[0] == snakeY[i]) {
+                    isFail = true;
+                }
+            }
+
             repaint();   //刷新界面     
         }
         timer.start();//让时间动起来
         
-
     }
    
 
